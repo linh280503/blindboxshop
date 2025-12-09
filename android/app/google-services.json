@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "395589240644",
+    "project_id": "shop-blind-box",
+    "storage_bucket": "shop-blind-box.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395589240644:android:ba27ae98c3c97c6761b911",
+        "android_client_info": {
+          "package_name": "com.example.blind_box_shop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRDRzE4CQF9zuU1qUz2if1gSCle6DQaNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395589240644:android:0a1eaf368de18f6e61b911",
+        "android_client_info": {
+          "package_name": "com.example.shop_blind_box"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRDRzE4CQF9zuU1qUz2if1gSCle6DQaNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
