@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../widgets/admin_bottom_navigation.dart';
 import '../../../order/data/di/order_providers.dart';
 import '../../../order/domain/entities/order_status.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -715,6 +716,9 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
           ),
         ],
       ),
+      bottomNavigationBar: const AdminBottomNavigation(
+        currentTab: AdminTab.analytics,
+      ),
     );
   }
 
@@ -961,15 +965,7 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
                       error: (e, __) => Center(child: Text('Lỗi: $e')),
-                      data: (list) {
-                        final series = list
-                            .map(
-                              (e) => {
-                                'label': (e['userId'] ?? '') as String,
-                                'y': (e['totalSpent'] as num).toDouble(),
-                              },
-                            )
-                            .toList();
+                      data: (series) {
                         if (series.isEmpty) {
                           return Text(
                             'Chưa có dữ liệu',

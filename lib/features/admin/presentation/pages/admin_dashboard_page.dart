@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../widgets/admin_stats_card.dart';
+import '../widgets/admin_bottom_navigation.dart';
 import '../../../order/presentation/widgets/admin_recent_orders.dart';
 import '../widgets/admin_quick_actions.dart';
 import '../../../order/data/di/order_providers.dart';
@@ -64,8 +65,6 @@ final dashboardStatsProvider = FutureProvider<Map<String, dynamic>>((
 });
 
 class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
-  int _selectedTabIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -197,61 +196,8 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedTabIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedTabIndex = index;
-          });
-
-          switch (index) {
-            case 0:
-              // Dashboard - already here
-              break;
-            case 1:
-              context.push('/admin/products');
-              break;
-            case 2:
-              context.push('/admin/orders');
-              break;
-            case 3:
-              context.push('/admin/customers');
-              break;
-            case 4:
-              context.push('/admin/analytics');
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2_outlined),
-            activeIcon: Icon(Icons.inventory_2),
-            label: 'Sản phẩm',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long_outlined),
-            activeIcon: Icon(Icons.receipt_long),
-            label: 'Đơn hàng',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outlined),
-            activeIcon: Icon(Icons.people),
-            label: 'Khách hàng',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            activeIcon: Icon(Icons.analytics),
-            label: 'Thống kê',
-          ),
-        ],
+      bottomNavigationBar: const AdminBottomNavigation(
+        currentTab: AdminTab.dashboard,
       ),
     );
   }
