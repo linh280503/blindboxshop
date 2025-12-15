@@ -21,6 +21,11 @@ class StripeService {
     Map<String, dynamic>? metadata,
     String? merchantDisplayName,
   }) async {
+    // amountInMinorUnit: số tiền VND đã nhân 100 (từ checkout_page)
+    // Ví dụ: 980000 VND * 100 = 98000000
+    // Chuyển sang USD cents: 98000000 / 100 / 24000 * 100 = (98000000 / 24000) = amount in USD cents
+    final amountInCents = (amountInMinorUnit / AppConstants.dollarToVnd).round();
+    
     // Tạo PaymentIntent trên backend
     final uri = Uri.parse(
       '${AppConstants.baseUrl}/payments/create-payment-intent',
@@ -29,7 +34,7 @@ class StripeService {
       uri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'amount': amountInMinorUnit / AppConstants.dollarToVnd,
+        'amount': amountInCents,
         'currency': currency,
         if (metadata != null) 'metadata': metadata,
       }),

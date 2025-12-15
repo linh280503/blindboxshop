@@ -513,7 +513,7 @@ final lowCustomersByRangeProvider = FutureProvider.autoDispose
             'label': user?.name != null && user!.name.isNotEmpty
                 ? user.name
                 : 'User ${userId.substring(0, 4)}...',
-            'y': (item['totalSpent'] as num).toDouble(),
+            'y': ((item['totalSpent'] as num?) ?? 0.0).toDouble(),
             'image': user?.avatar,
           });
         }
@@ -965,8 +965,8 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
                         final series = list
                             .map(
                               (e) => {
-                                'label': (e['userId'] ?? '') as String,
-                                'y': (e['totalSpent'] as num).toDouble(),
+                                'label': (e['label'] ?? e['userId'] ?? '') as String,
+                                'y': ((e['y'] ?? e['totalSpent']) as num?)?.toDouble() ?? 0.0,
                               },
                             )
                             .toList();
