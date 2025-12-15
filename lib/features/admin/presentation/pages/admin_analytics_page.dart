@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../widgets/admin_bottom_navigation.dart';
 import '../../../order/data/di/order_providers.dart';
 import '../../../order/domain/entities/order_status.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -714,6 +715,9 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: const AdminBottomNavigation(
+        currentTab: AdminTab.analytics,
       ),
     );
   }

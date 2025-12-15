@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/product_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/export_service.dart';
+import '../../../admin/presentation/widgets/admin_bottom_navigation.dart';
 import '../widgets/admin_product_dialog.dart';
 
 class AdminProductManagementPage extends ConsumerStatefulWidget {
@@ -250,6 +251,9 @@ class _AdminProductManagementPageState
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: const AdminBottomNavigation(
+        currentTab: AdminTab.products,
       ),
     );
   }

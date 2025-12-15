@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/user_model.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../admin/presentation/widgets/admin_bottom_navigation.dart';
 import '../widgets/admin_customer_detail_dialog.dart';
 
 class AdminCustomerManagementPage extends ConsumerStatefulWidget {
@@ -279,6 +280,9 @@ class _AdminCustomerManagementPageState
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: const AdminBottomNavigation(
+        currentTab: AdminTab.customers,
       ),
     );
   }

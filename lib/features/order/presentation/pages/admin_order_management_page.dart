@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/order_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../admin/presentation/widgets/admin_bottom_navigation.dart';
 import '../providers/order_provider.dart';
 import '../../data/di/order_providers.dart';
 import '../../domain/entities/order_status.dart';
@@ -330,6 +331,9 @@ class _AdminOrderManagementPageState
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: const AdminBottomNavigation(
+        currentTab: AdminTab.orders,
       ),
     );
   }

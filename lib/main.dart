@@ -13,8 +13,7 @@ import 'core/router/router_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // TODO: Replace with your Stripe publishable key
-  Stripe.publishableKey =
-      'pk_test_51SBV8V3gfCr6ApSiFkfhw344Hkgf7xon2XM3eg7yqUQONQMd0tUF6XSCIXVPdvbWw9yYdFNPbZOUJcvVc6QYVnRO00p55NELNN';
+  Stripe.publishableKey = '';
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const ProviderScope(child: MyApp()));
 }
