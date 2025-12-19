@@ -1,0 +1,38 @@
+@startuml Admin_Product_Management_UseCase
+
+title "Biểu đồ Use Case - Quản lý sản phẩm (Admin)"
+
+top to bottom direction
+
+actor "Quản trị viên" as Admin
+
+rectangle "Quản lý sản phẩm" {
+
+    usecase "Xem danh sách sản phẩm" as UC_ViewProductList
+    usecase "Lọc theo danh mục" as UC_FilterByCategory
+    usecase "Thêm sản phẩm mới" as UC_AddProduct
+    usecase "Sửa sản phẩm" as UC_EditProduct
+    usecase "Xóa sản phẩm" as UC_DeleteProduct
+    usecase "Ẩn/hiện sản phẩm" as UC_ToggleProduct
+    
+    usecase "Nhập thông tin sản phẩm\n(Tên, Mô tả, Giá, Loại)" as UC_InputProductInfo
+    usecase "Thiết lập giá Box/Set" as UC_SetBoxPrice
+    usecase "Upload hình ảnh sản phẩm" as UC_UploadImage
+
+}
+
+' Main relationships
+Admin --> UC_ViewProductList
+Admin --> UC_FilterByCategory
+Admin --> UC_AddProduct
+Admin --> UC_EditProduct
+Admin --> UC_DeleteProduct
+Admin --> UC_ToggleProduct
+
+' Include relationships
+UC_AddProduct ..> UC_InputProductInfo : <<include>>
+UC_EditProduct ..> UC_InputProductInfo : <<include>>
+UC_InputProductInfo ..> UC_SetBoxPrice : <<include>>
+UC_InputProductInfo ..> UC_UploadImage : <<include>>
+
+@enduml

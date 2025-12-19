@@ -1,0 +1,20 @@
+@startuml User_Login_Sequence
+
+title "Sequence Diagram - Đăng nhập"
+
+actor "Người dùng" as User
+participant "LoginScreen" as Screen
+participant "AuthService" as Service
+
+== Đăng nhập ==
+User -> Screen: Nhập thông tin đăng nhập
+note right: Email + Password\nhoặc Google Account
+Screen -> Service: Xác thực thông tin
+Service --> Screen: Kết quả đăng nhập
+alt Thành công
+    Screen --> User: Chuyển đến trang chủ
+else Thất bại
+    Screen --> User: Thông báo lỗi
+end
+
+@enduml

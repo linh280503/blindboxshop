@@ -1,0 +1,40 @@
+@startuml Customer_Product_Search_Sequence
+
+title "Sequence Diagram - Tìm kiếm sản phẩm"
+
+actor "Người dùng" as User
+participant "SearchScreen" as Screen
+participant "SearchService" as Service
+database "Database" as DB
+
+== Tìm kiếm theo từ khóa ==
+User -> Screen: Nhập từ khóa tìm kiếm
+note right: Tên sản phẩm, từ khóa,\nLoại sản phẩm, Gợi ý
+User -> Screen: Nhấn tìm kiếm
+Screen -> Service: Tìm kiếm sản phẩm theo keyword
+Service -> DB: Truy vấn products với từ khóa
+DB --> Service: Kết quả tìm kiếm
+Service --> Screen: List<ProductModel>
+alt Có kết quả
+    Screen --> User: Hiển thị danh sách sản phẩm
+else Không có kết quả
+    Screen --> User: "Không tìm thấy sản phẩm"
+end
+
+== Lọc kết quả ==
+User -> Screen: Chọn bộ lọc
+note right: Danh mục, Khoảng giá,\nBình chọn, Tình trạng
+Screen -> Service: Áp dụng filter
+Service -> DB: Truy vấn với điều kiện lọc
+DB --> Service: Filtered products
+Service --> Screen: Kết quả đã lọc
+Screen --> User: Hiển thị kết quả lọc
+
+== Sắp xếp kết quả ==
+User -> Screen: Chọn tiêu chí sắp xếp
+note right: Giá tăng/giảm, Mới nhất,\nBán chạy, Đánh giá cao
+Screen -> Service: Sắp xếp danh sách
+Service --> Screen: Sorted results
+Screen --> User: Hiển thị kết quả đã sắp xếp
+
+@enduml

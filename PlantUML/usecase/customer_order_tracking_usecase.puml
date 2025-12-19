@@ -1,0 +1,35 @@
+@startuml Customer_Order_Tracking_UseCase
+
+title "Biểu đồ Use Case - Theo dõi đơn hàng"
+
+top to bottom direction
+
+actor "Khách hàng" as Customer
+
+rectangle "Theo dõi đơn hàng" {
+
+    usecase "Xem danh sách sản phẩm" as UC_ViewProductList
+    usecase "Xem chi tiết đơn hàng" as UC_ViewOrderDetail
+    usecase "Xem trạng thái\n(Pending → Confirmed → Shipping → Delivered)" as UC_ViewOrderStatus
+    usecase "Xem thông tin giao hàng" as UC_ViewDeliveryInfo
+    usecase "Lọc theo trạng thái" as UC_FilterByStatus
+    usecase "Hủy đơn hàng" as UC_CancelOrder
+    usecase "Xem danh sách đơn hàng" as UC_ViewOrderList
+
+}
+
+' Main relationships
+Customer --> UC_ViewOrderDetail
+Customer --> UC_FilterByStatus
+Customer --> UC_CancelOrder
+Customer --> UC_ViewOrderList
+
+' Include relationships
+UC_ViewOrderDetail ..> UC_ViewProductList : <<include>>
+UC_ViewOrderDetail ..> UC_ViewOrderStatus : <<include>>
+UC_ViewOrderDetail ..> UC_ViewDeliveryInfo : <<include>>
+
+' Extend relationships
+UC_FilterByStatus ..> UC_ViewOrderList : <<extend>>
+
+@enduml

@@ -1,0 +1,37 @@
+@startuml Admin_Order_Management_Sequence
+
+title "Sequence Diagram - Quản lý đơn hàng (Admin)"
+
+actor "Quản trị viên" as Admin
+participant "OrderScreen" as Screen
+participant "OrderService" as Service
+database "Database" as DB
+
+== Xem danh sách đơn hàng ==
+Admin -> Screen: Mở trang quản lý đơn hàng
+Screen -> Service: Lấy danh sách đơn hàng
+Service -> DB: Truy vấn orders
+DB --> Service: Danh sách đơn hàng
+Service --> Screen: Kết quả
+Screen --> Admin: Hiển thị danh sách
+note right: Mã đơn, Khách hàng,\nTổng tiền, Trạng thái, Ngày tạo
+
+== Xem chi tiết đơn hàng ==
+Admin -> Screen: Nhấn vào đơn hàng
+Screen -> Service: Lấy chi tiết order
+Service -> DB: Truy vấn chi tiết và sản phẩm
+DB --> Service: Chi tiết đơn hàng
+Service --> Screen: Thông tin đầy đủ
+Screen --> Admin: Hiển thị chi tiết
+note right: Thông tin khách hàng,\nDanh sách sản phẩm,\nĐịa chỉ giao hàng,\nThanh toán
+
+== Cập nhật trạng thái đơn hàng ==
+Admin -> Screen: Chọn trạng thái mới
+note left: Pending → Confirmed\nConfirmed → Shipping\nShipping → Delivered
+Screen -> Service: Cập nhật status
+Service -> DB: Lưu trạng thái mới
+DB --> Service: Cập nhật thành công
+Service --> Screen: OrderModel đã cập nhật
+Screen --> Admin: Trạng thái đã được cập nhật
+
+@enduml

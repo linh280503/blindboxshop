@@ -1,0 +1,39 @@
+@startuml Customer_Product_Review_Sequence
+
+title "Sequence Diagram - Đánh giá sản phẩm"
+
+actor "Khách hàng" as Customer
+participant "ProductScreen" as Screen
+participant "ReviewService" as Service
+database "Database" as DB
+
+== Kiểm tra quyền đánh giá ==
+Customer -> Screen: Nhấn "Viết đánh giá"
+Screen -> Service: Kiểm tra quyền review
+Service -> DB: Kiểm tra user đã mua sản phẩm
+DB --> Service: Purchase history
+alt Đã mua sản phẩm
+    Service --> Screen: Cho phép đánh giá
+    Screen --> Customer: Hiển thị form đánh giá
+else Chưa mua sản phẩm
+    Service --> Screen: "Bạn cần mua sản phẩm trước khi đánh giá"
+    Screen --> Customer: Thông báo lỗi
+end
+
+== Gửi đánh giá ==
+Customer -> Screen: Chọn số sao (1-5) và nhập nội dung
+note right: Rating, Comment,\nHình ảnh (tùy chọn)
+Customer -> Screen: Nhấn "Gửi đánh giá"
+Screen -> Service: Tạo review mới
+Service -> DB: Lưu review và upload ảnh (nếu có)
+DB --> Service: ReviewModel
+Service --> Screen: Đánh giá thành công
+Screen --> Customer: "Cảm ơn bạn đã đánh giá"
+
+== Cập nhật rating trung bình ==
+Service -> DB: Tính toán lại average rating
+DB --> Service: Updated product rating
+Service --> Screen: ReviewModel
+Screen --> Customer: Refresh danh sách đánh giá
+
+@enduml

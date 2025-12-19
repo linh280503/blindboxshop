@@ -1,0 +1,34 @@
+@startuml Customer_Order_UseCase
+
+title "Biểu đồ Use Case - Đặt hàng"
+
+top to bottom direction
+
+actor "Khách hàng" as Customer
+
+rectangle "Đặt hàng" {
+
+    usecase "Áp dụng mã giảm giá" as UC_ApplyDiscount
+    usecase "Xem giỏ hàng" as UC_ViewCart
+    usecase "Đặt đơn hàng" as UC_PlaceOrder
+    usecase "Chọn địa chỉ giao hàng" as UC_SelectAddress
+    usecase "Thêm địa chỉ mới" as UC_AddNewAddress
+    usecase "Chọn phương thức thanh toán" as UC_SelectPayment
+    usecase "Thanh toán" as UC_Payment
+
+}
+
+' Main relationship
+Customer --> UC_PlaceOrder
+
+' Include relationships
+UC_PlaceOrder ..> UC_ViewCart : <<include>>
+UC_PlaceOrder ..> UC_SelectAddress : <<include>>
+UC_SelectAddress ..> UC_SelectPayment : <<include>>
+UC_SelectPayment ..> UC_Payment : <<include>>
+
+' Extend relationships
+UC_ApplyDiscount ..> UC_PlaceOrder : <<extend>>
+UC_AddNewAddress ..> UC_SelectAddress : <<extend>>
+
+@enduml

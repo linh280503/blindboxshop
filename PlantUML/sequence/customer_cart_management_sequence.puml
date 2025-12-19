@@ -1,0 +1,25 @@
+@startuml Customer_Cart_Management_Sequence
+
+title "Sequence Diagram - Quản lý giỏ hàng"
+
+actor "Khách hàng" as Customer
+participant "CartScreen" as Screen
+participant "CartService" as Service
+
+== Quản lý giỏ hàng ==
+Customer -> Screen: Mở giỏ hàng
+Screen -> Service: Lấy danh sách sản phẩm
+Service --> Screen: Cart items và tổng tiền
+Screen --> Customer: Hiển thị giỏ hàng
+note right: Sản phẩm, Số lượng, Giá, Tổng
+
+Customer -> Screen: Cập nhật số lượng hoặc xóa sản phẩm
+Screen -> Service: Thay đổi cart
+Service --> Screen: Kết quả
+alt Thành công
+    Screen --> Customer: Cập nhật giỏ hàng
+else Lỗi tồn kho
+    Screen --> Customer: "Vượt quá số lượng có sẵn"
+end
+
+@enduml

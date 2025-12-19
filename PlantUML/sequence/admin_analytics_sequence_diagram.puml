@@ -1,0 +1,34 @@
+@startuml Admin_Analytics_Sequence_Diagram
+
+title "Sequence Diagram - Thống kê và Báo cáo (Admin Dashboard)"
+
+actor "Quản trị viên" as Admin
+participant "AdminDashboard" as Dashboard
+participant "AnalyticsService" as Service
+database "Database" as DB
+
+== Tải Dashboard ==
+Admin -> Dashboard: Mở Dashboard
+activate Dashboard
+Dashboard -> Service: loadAnalyticsData()
+activate Service
+
+Service -> DB: Lấy dữ liệu thống kê
+note right: - Tổng doanh thu\n- Số đơn hàng\n- Số khách hàng\n- Sản phẩm bán chạy\n- Biểu đồ doanh thu
+DB --> Service: Dữ liệu thống kê
+
+Service --> Dashboard: AnalyticsData
+deactivate Service
+
+Dashboard --> Admin: Hiển thị Dashboard với biểu đồ
+deactivate Dashboard
+
+== Lọc theo thời gian ==
+Admin -> Dashboard: Chọn khoảng thời gian
+Dashboard -> Service: filterData(dateRange)
+Service -> DB: Truy vấn theo thời gian
+DB --> Service: Dữ liệu đã lọc
+Service --> Dashboard: Cập nhật dữ liệu
+Dashboard --> Admin: Hiển thị kết quả lọc
+
+@enduml

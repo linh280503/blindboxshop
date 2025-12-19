@@ -1,0 +1,30 @@
+@startuml Customer_Order_Placement_Sequence
+
+title "Sequence Diagram - Đặt hàng"
+
+actor "Khách hàng" as Customer
+participant "CheckoutScreen" as Screen
+participant "OrderService" as Service
+
+== Đặt hàng ==
+Customer -> Screen: Tiến hành checkout
+Screen -> Service: Lấy thông tin giỏ hàng và địa chỉ
+Service --> Screen: Dữ liệu checkout
+Screen --> Customer: Hiển thị trang thanh toán
+note right: Sản phẩm, Địa chỉ, Tổng tiền
+
+Customer -> Screen: Áp dụng mã giảm giá (tùy chọn)
+Screen -> Service: Kiểm tra coupon
+Service --> Screen: Kết quả
+alt Mã hợp lệ
+    Screen --> Customer: Áp dụng giảm giá
+else Mã không hợp lệ
+    Screen --> Customer: "Mã giảm giá không hợp lệ"
+end
+
+Customer -> Screen: Xác nhận đặt hàng
+Screen -> Service: Tạo đơn hàng và xóa giỏ hàng
+Service --> Screen: Đặt hàng thành công
+Screen --> Customer: Chuyển đến thanh toán
+
+@enduml

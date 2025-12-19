@@ -1,0 +1,172 @@
+@startuml Blind_Box_Shop_Class_Diagram
+
+title "Class Diagram - Blind Box Shop"
+
+' User Management
+class UserModel {
+  -id: String
+  -email: String  
+  -name: String
+  -phone: String
+  -role: String
+  -isActive: bool
+  -createdAt: DateTime
+  -updatedAt: DateTime
+  +signUp()
+  +signIn()
+  +updateProfile()
+  +changePassword()
+}
+
+class AddressModel {
+  -id: String
+  -userId: String
+  -name: String
+  -phone: String
+  -address: String
+  -city: String
+  -isDefault: bool
+  +addAddress()
+  +updateAddress()
+  +deleteAddress()
+}
+
+' Product Management
+class ProductModel {
+  -id: String
+  -name: String
+  -description: String
+  -price: double
+  -images: List<String>
+  -categoryId: String
+  -stock: int
+  -isActive: bool
+  -createdAt: DateTime
+  +addProduct()
+  +updateProduct()
+  +deleteProduct()
+  +getProducts()
+}
+
+class CategoryModel {
+  -id: String
+  -name: String
+  -description: String
+  -image: String
+  -isActive: bool
+  +addCategory()
+  +updateCategory()
+  +getCategories()
+}
+
+' Shopping Cart
+class Cart {
+  -userId: String
+  -items: List<CartItem>
+  -totalAmount: double
+  +addToCart()
+  +removeFromCart()
+  +updateQuantity()
+  +clearCart()
+}
+
+class CartItem {
+  -productId: String
+  -quantity: int
+  -price: double
+  -totalPrice: double
+}
+
+' Order Management
+class OrderModel {
+  -id: String
+  -userId: String
+  -orderItems: List<OrderItem>
+  -totalAmount: double
+  -status: OrderStatus
+  -shippingAddress: AddressModel
+  -createdAt: DateTime
+  +createOrder()
+  +updateOrderStatus()
+  +cancelOrder()
+  +getOrders()
+}
+
+class OrderItem {
+  -orderId: String
+  -productId: String
+  -quantity: int
+  -price: double
+  -totalPrice: double
+}
+
+' Discount System
+class DiscountModel {
+  -id: String
+  -code: String
+  -name: String
+  -type: DiscountType
+  -value: double
+  -minOrderAmount: double
+  -maxUsage: int
+  -usedCount: int
+  -startDate: DateTime
+  -endDate: DateTime
+  -isActive: bool
+  +createDiscount()
+  +applyDiscount()
+  +validateDiscount()
+}
+
+' Review System
+class ReviewModel {
+  -id: String
+  -userId: String
+  -productId: String
+  -rating: int
+  -comment: String
+  -status: ReviewStatus
+  -createdAt: DateTime
+  +addReview()
+  +updateReview()
+  +approveReview()
+}
+
+' Enums
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPING
+  DELIVERED
+  CANCELLED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+' Relationships
+UserModel ||--o{ AddressModel : has
+UserModel ||--|| Cart : owns
+UserModel ||--o{ OrderModel : places
+UserModel ||--o{ ReviewModel : writes
+
+ProductModel }o--|| CategoryModel : belongs to
+ProductModel ||--o{ CartItem : contains
+ProductModel ||--o{ OrderItem : contains
+ProductModel ||--o{ ReviewModel : has
+
+Cart ||--o{ CartItem : contains
+OrderModel ||--o{ OrderItem : contains
+OrderModel }o--|| AddressModel : ships to
+
+OrderModel }o--o| DiscountModel : uses
+
+@enduml

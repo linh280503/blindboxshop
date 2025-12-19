@@ -1,0 +1,38 @@
+@startuml Customer_Stripe_Payment_Sequence
+
+title "Sequence Diagram - Thanh toán Stripe"
+
+actor "Khách hàng" as Customer
+participant "PaymentScreen" as Screen
+participant "PaymentService" as Service
+database "Database" as DB
+
+== Khởi tạo thanh toán ==
+Customer -> Screen: Mở màn hình thanh toán
+Screen -> Service: Tạo payment intent
+Service -> Service: Tạo PaymentIntent với Stripe
+Service -> DB: Lưu thông tin payment
+DB --> Service: PaymentIntent data
+Service --> Screen: Client secret
+Screen --> Customer: Hiển thị form nhập thẻ
+
+== Xử lý thanh toán ==
+Customer -> Screen: Nhập thông tin thẻ và nhấn "Thanh toán"
+note right: Card number, Expiry, CVC
+Screen -> Service: Xác nhận thanh toán
+Service -> Service: Confirm payment với Stripe API
+alt Thanh toán thành công
+    Service --> Screen: Payment success
+    Screen --> Customer: Thông báo "Thanh toán thành công"
+else Thanh toán thất bại
+    Service --> Screen: Payment error
+    Screen --> Customer: Thông báo lỗi thanh toán
+end
+
+== Cập nhật đơn hàng ==
+Service -> DB: Cập nhật trạng thái đơn hàng
+DB --> Service: Success
+Service --> Screen: Order updated
+Screen --> Customer: Chuyển đến trang thành công
+
+@enduml

@@ -1,0 +1,76 @@
+@startuml Blind_Box_Shop_UseCase
+
+title "Hệ thống thương mại điện tử Blind Box Shop"
+
+left to right direction
+
+' Define Actors
+:Quản trị viên: as Admin
+:Khách hàng: as Customer  
+:Người dùng khách: as GuestUser
+
+rectangle "Hệ thống thương mại điện tử Blind Box Shop" {
+
+' Admin Use Cases (Left side)
+(Quản lý Banner) as UC_ManageBanner
+(Quản lý sản phẩm) as UC_ManageProduct
+(Quản lý người dùng) as UC_ManageUser
+(Quản lý đơn hàng) as UC_ManageOrder
+(Quản lý mã giảm giá) as UC_ManageDiscount
+(Thống kê và Báo cáo) as UC_StatisticReport
+(Quản lý tồn kho) as UC_ManageInventory
+
+' Customer Use Cases (Center)
+(Đăng nhập tài khoản) as UC_Login
+(Đăng xuất tài khoản) as UC_Logout
+(Đánh giá sản phẩm) as UC_RateProduct
+(Quản lý đại chỉ giao hàng) as UC_ManageShipping
+(Quản lý thông tin tài khoản) as UC_ManageAccount
+(Áp dụng mã giảm giá) as UC_ApplyDiscount
+(Đặt hàng) as UC_PlaceOrder
+(Quản lý đơn hàng đã đặt) as UC_ManagePlacedOrder
+(Tìm kiếm sản phẩm) as UC_SearchProduct
+(Đăng ký tài khoản) as UC_Register
+(Quên mật khẩu) as UC_ForgotPassword
+
+' Guest User Use Cases (Right side)  
+(Thêm sản phẩm vào giỏ hàng) as UC_AddToCart
+(Quản lý giỏ hàng) as UC_ManageCart
+(Thanh toán) as UC_Payment
+(Theo dõi đơn hàng) as UC_TrackOrder
+(Xem danh sách sản phẩm) as UC_ViewProductList
+(Xem chi tiết sản phẩm) as UC_ViewProductDetail
+
+}
+
+' Admin relationships
+Admin --> UC_ManageBanner
+Admin --> UC_ManageProduct
+Admin --> UC_ManageUser
+Admin --> UC_ManageOrder
+Admin --> UC_ManageDiscount
+Admin --> UC_StatisticReport
+Admin --> UC_ManageInventory
+
+' Customer relationships
+Customer --> UC_Login
+Customer --> UC_Logout
+Customer --> UC_RateProduct
+Customer --> UC_ManageShipping
+Customer --> UC_ManageAccount
+Customer --> UC_ApplyDiscount
+Customer --> UC_PlaceOrder
+Customer --> UC_ManagePlacedOrder
+Customer --> UC_SearchProduct
+Customer --> UC_Register
+Customer --> UC_ForgotPassword
+
+' Guest User relationships
+GuestUser --> UC_AddToCart
+GuestUser --> UC_ManageCart
+GuestUser --> UC_Payment
+GuestUser --> UC_TrackOrder
+GuestUser --> UC_ViewProductList
+GuestUser --> UC_ViewProductDetail
+
+@enduml

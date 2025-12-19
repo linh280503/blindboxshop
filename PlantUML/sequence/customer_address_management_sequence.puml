@@ -1,0 +1,31 @@
+@startuml Customer_Address_Management_Sequence
+
+title "Sequence Diagram - Quản lý địa chỉ giao hàng"
+
+actor "Khách hàng" as Customer
+participant "AddressScreen" as Screen
+participant "AddressService" as Service
+
+== Quản lý địa chỉ ==
+Customer -> Screen: Mở sổ địa chỉ
+Screen -> Service: Lấy danh sách địa chỉ
+Service --> Screen: Danh sách địa chỉ
+Screen --> Customer: Hiển thị địa chỉ
+note right: Họ tên, SĐT, Địa chỉ, Mặc định
+
+Customer -> Screen: Thêm/sửa địa chỉ
+Screen -> Service: Lưu thông tin địa chỉ
+Service --> Screen: Kết quả
+Screen --> Customer: "Địa chỉ đã được cập nhật"
+note right: Họ tên, SĐT,\nĐịa chỉ chi tiết
+
+Customer -> Screen: Đặt mặc định hoặc xóa địa chỉ
+Screen -> Service: Cập nhật địa chỉ
+Service --> Screen: Thành công
+alt Đặt mặc định
+    Screen --> Customer: "Đã đặt làm địa chỉ mặc định"
+else Xóa địa chỉ
+    Screen --> Customer: "Địa chỉ đã được xóa"
+end
+
+@enduml

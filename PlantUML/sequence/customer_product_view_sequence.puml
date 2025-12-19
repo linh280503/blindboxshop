@@ -1,0 +1,36 @@
+@startuml Customer_Product_View_Sequence
+
+title "Sequence Diagram - Xem chi tiết sản phẩm"
+
+actor "Người dùng" as User
+participant "ProductScreen" as Screen
+participant "ProductService" as Service
+database "Database" as DB
+
+== Xem danh sách sản phẩm ==
+User -> Screen: Mở danh sách sản phẩm
+Screen -> Service: Lấy danh sách products
+Service -> DB: Truy vấn products
+DB --> Service: List<ProductModel>
+Service --> Screen: Danh sách sản phẩm
+Screen --> User: Hiển thị grid sản phẩm
+note right: Tên, Hình, Giá
+
+== Xem chi tiết sản phẩm ==
+User -> Screen: Nhấn vào sản phẩm
+Screen -> Service: Lấy chi tiết product
+Service -> DB: Truy vấn thông tin chi tiết
+DB --> Service: ProductModel (chi tiết)
+Service --> Screen: ProductModel
+Screen --> User: Hiển thị chi tiết
+note right: Tên, Mô tả, Giá, Hình ảnh,\nSố lượng tồn kho
+
+== Tải thêm thông tin ==
+Screen -> Service: Lấy đánh giá và sản phẩm liên quan
+Service -> DB: Truy vấn reviews và related products
+DB --> Service: Reviews + Related Products
+Service --> Screen: Dữ liệu bổ sung
+Screen --> User: Hiển thị đánh giá và gợi ý
+note right: Rating, Nội dung, Hình ảnh,\nSản phẩm liên quan
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml Admin_User_Management_UseCase
+
+
+title "Biểu đồ Use Case - Quản lý người dùng (Admin)"
+
+left to right direction
+
+actor "Quản trị viên" as Admin
+
+rectangle "Quản lý người dùng" {
+
+    usecase "Xem chi tiết người dùng" as UC_ViewUserDetail
+    usecase "Lọc theo vai trò\n(Customer/Admin)" as UC_FilterByRole
+    usecase "Thay đổi vai trò" as UC_ChangeRole
+    usecase "Vô hiệu hóa tài khoản" as UC_DisableAccount
+    usecase "Kích hoạt tài khoản" as UC_EnableAccount
+    usecase "Xóa người dùng" as UC_DeleteUser
+    
+    usecase "Xem lịch sử đơn hàng" as UC_ViewOrderHistory
+    usecase "Xem thông tin cá nhân" as UC_ViewPersonalInfo
+    usecase "Xem danh sách người dùng" as UC_ViewUserList
+
+}
+
+' Main relationships
+Admin --> UC_ViewUserDetail
+Admin --> UC_FilterByRole
+Admin --> UC_ChangeRole
+Admin --> UC_DisableAccount
+Admin --> UC_EnableAccount
+Admin --> UC_DeleteUser
+
+' Include relationships
+UC_ViewUserDetail ..> UC_ViewOrderHistory : <<include>>
+UC_ViewUserDetail ..> UC_ViewPersonalInfo : <<include>>
+
+' Extend relationships
+UC_FilterByRole ..> UC_ViewUserList : <<extend>>
+
+' Position notes
+note right of UC_ViewUserDetail : Xem chi tiết thông tin\ncủa từng người dùng
+
+note bottom of UC_ViewOrderHistory : Hiển thị lịch sử\nmua hàng của user
+
+note bottom of UC_ViewPersonalInfo : Thông tin cá nhân\nvà tài khoản
+
+note left of UC_FilterByRole : Lọc danh sách theo\nloại tài khoản
+
+@enduml

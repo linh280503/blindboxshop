@@ -1,0 +1,35 @@
+@startuml Admin_Coupon_Management_Sequence
+
+title "Sequence Diagram - Quản lý mã giảm giá (Admin)"
+
+actor "Quản trị viên" as Admin
+participant "CouponScreen" as Screen
+participant "CouponService" as Service
+database "Database" as DB
+
+== Xem danh sách mã giảm giá ==
+Admin -> Screen: Mở trang quản lý
+Screen -> Service: Lấy danh sách coupon
+Service -> DB: Truy vấn dữ liệu
+DB --> Service: Danh sách coupon
+Service --> Screen: Kết quả
+Screen --> Admin: Hiển thị danh sách
+
+== Thêm mã giảm giá ==
+Admin -> Screen: Nhập thông tin coupon mới
+note right: Code, loại giảm giá,\ngiá trị, ngày hết hạn
+Screen -> Service: Tạo coupon
+Service -> DB: Lưu vào database
+DB --> Service: Thành công
+Service --> Screen: Coupon đã tạo
+Screen --> Admin: Thông báo thành công
+
+== Cập nhật mã giảm giá ==
+Admin -> Screen: Chỉnh sửa coupon
+Screen -> Service: Cập nhật thông tin
+Service -> DB: Lưu thay đổi
+DB --> Service: Cập nhật thành công
+Service --> Screen: Kết quả
+Screen --> Admin: Hiển thị cập nhật
+
+@enduml

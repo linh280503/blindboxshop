@@ -1,0 +1,37 @@
+@startuml View_Product_Detail_UseCase
+
+
+title "Biểu đồ Use Case - Xem chi tiết sản phẩm"
+
+left to right direction
+
+actor "Khách hàng" as Customer
+
+rectangle "Xem chi tiết sản phẩm" {
+
+    usecase "Đánh giá sản phẩm" as UC_RateProduct
+    usecase "Xem chi tiết sản phẩm" as UC_ViewProductDetail
+    usecase "Xem thông tin sản phẩm" as UC_ViewProductInfo  
+    usecase "Xem danh giá sản phẩm" as UC_ViewProductPrice
+    usecase "Xem danh sách sản phẩm liên quan" as UC_ViewRelatedProducts
+
+}
+
+' Main relationship
+Customer --> UC_ViewProductDetail
+
+' Extend relationships
+UC_RateProduct ..> UC_ViewProductDetail : <<extend>>
+UC_ViewProductInfo ..> UC_ViewProductDetail : <<extend>>
+UC_ViewProductPrice ..> UC_ViewProductDetail : <<extend>>
+UC_ViewRelatedProducts ..> UC_ViewProductDetail : <<extend>>
+
+note right of UC_ViewProductDetail : Use case chính cho việc\nxem chi tiết sản phẩm
+
+note top of UC_RateProduct : Khách hàng có thể\nđánh giá sản phẩm
+
+note bottom of UC_ViewProductPrice : Hiển thị thông tin\ngiá cả sản phẩm
+
+note bottom of UC_ViewRelatedProducts : Gợi ý các sản phẩm\ntương tự hoặc liên quan
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml Admin_Revenue_Statistics_UseCase
+
+title "Biểu đồ Use Case - Thống kê doanh thu (Admin)"
+
+left to right direction
+
+actor "Quản trị viên" as Admin
+
+rectangle "Thống kê và Báo cáo" {
+
+    usecase "Xem Dashboard" as UC_ViewDashboard
+    usecase "Xem sản phẩm bán chạy" as UC_ViewBestSellers
+    usecase "Xem sản phẩm tồn kho nhiều" as UC_ViewHighStock
+    usecase "Xem số lượng khách hàng" as UC_ViewCustomerCount
+    
+    usecase "Xem tổng doanh thu" as UC_ViewTotalRevenue
+    usecase "Xem số lượng đơn hàng" as UC_ViewOrderCount
+
+}
+
+' Main relationships
+Admin --> UC_ViewDashboard
+Admin --> UC_ViewBestSellers  
+Admin --> UC_ViewHighStock
+Admin --> UC_ViewCustomerCount
+
+' Include relationships
+UC_ViewDashboard ..> UC_ViewTotalRevenue : <<include>>
+UC_ViewBestSellers ..> UC_ViewOrderCount : <<include>>
+
+@enduml

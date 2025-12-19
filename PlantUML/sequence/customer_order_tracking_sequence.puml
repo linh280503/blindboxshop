@@ -1,0 +1,31 @@
+@startuml Customer_Order_Tracking_Sequence
+
+title "Sequence Diagram - Theo dõi đơn hàng"
+
+actor "Khách hàng" as Customer
+participant "OrderScreen" as Screen
+participant "OrderService" as Service
+
+== Theo dõi đơn hàng ==
+Customer -> Screen: Mở danh sách đơn hàng
+Screen -> Service: Lấy orders của user
+Service --> Screen: Danh sách đơn hàng
+Screen --> Customer: Hiển thị đơn hàng
+note right: Mã đơn, Trạng thái, Tổng tiền
+
+Customer -> Screen: Xem chi tiết hoặc hủy đơn hàng
+Screen -> Service: Lấy chi tiết order
+Service --> Screen: Thông tin chi tiết
+Screen --> Customer: Hiển thị chi tiết đơn hàng
+note right: Timeline trạng thái,\nSản phẩm, Địa chỉ
+
+alt Đơn hàng đang chờ
+    Customer -> Screen: Hủy đơn hàng
+    Screen -> Service: Cập nhật trạng thái
+    Service --> Screen: Đã hủy thành công
+    Screen --> Customer: "Đơn hàng đã được hủy"
+else Đơn hàng đã xử lý
+    Screen --> Customer: "Không thể hủy đơn hàng"
+end
+
+@enduml

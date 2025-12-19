@@ -1,0 +1,38 @@
+@startuml User_Registration_Sequence
+
+title "Sequence Diagram - Đăng ký tài khoản"
+
+actor "Người dùng" as User
+participant "RegisterScreen" as Screen
+participant "AuthService" as Service
+database "Database" as DB
+
+== Nhập thông tin đăng ký ==
+User -> Screen: Nhấn nút "Đăng ký"
+Screen -> Screen: Hiển thị form đăng ký
+User -> Screen: Nhập thông tin
+note right: Họ tên, Email, Mật khẩu
+User -> Screen: Nhấn "Đăng ký"
+
+== Xác thực và tạo tài khoản ==
+Screen -> Service: Đăng ký tài khoản (name, email, password)
+Service -> Service: Validate dữ liệu
+note right: Email format, password >= 6 ký tự
+
+alt Dữ liệu hợp lệ
+    Service -> DB: Tạo tài khoản user
+    DB --> Service: UserCredential (uid)
+    Service -> DB: Lưu thông tin user
+    DB --> Service: Success
+    Service --> Screen: UserModel
+    Screen --> User: Đăng ký thành công
+else Email đã tồn tại
+    Service --> Screen: Error "Email đã được đăng ký"
+    Screen --> User: Hiển thị thông báo lỗi
+end
+
+== Chuyển hướng ==
+Screen -> Screen: Navigate to LoginScreen
+Screen --> User: Thông báo thành công
+
+@enduml

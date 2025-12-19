@@ -1,0 +1,40 @@
+@startuml Admin_Product_Management_Sequence
+
+title "Sequence Diagram - Quản lý sản phẩm (Admin)"
+
+actor "Quản trị viên" as Admin
+participant "ProductScreen" as Screen
+participant "ProductService" as Service
+database "Database" as DB
+
+== Xem danh sách sản phẩm ==
+Admin -> Screen: Mở trang Quản lý sản phẩm
+Screen -> Service: Lấy danh sách sản phẩm
+Service -> DB: Truy vấn products
+DB --> Service: Danh sách sản phẩm
+Service --> Screen: Kết quả
+Screen --> Admin: Hiển thị danh sách
+note right: Hình, Tên, Giá, Danh mục,\nTồn kho, Trạng thái
+
+== Thêm sản phẩm mới ==
+Admin -> Screen: Nhấn "Thêm sản phẩm"
+Screen -> Screen: Hiển thị form thêm sản phẩm
+Admin -> Screen: Nhập thông tin và upload hình ảnh
+note left: Tên, Mô tả, Giá, Danh mục,\nSố lượng, Hình ảnh
+Admin -> Screen: Nhấn "Lưu"
+
+Screen -> Service: Tạo sản phẩm mới (bao gồm images)
+Service -> DB: Lưu thông tin sản phẩm
+DB --> Service: ProductModel
+Service --> Screen: Sản phẩm đã tạo
+Screen --> Admin: Thêm thành công
+
+== Quản lý sản phẩm ==
+Admin -> Screen: Chỉnh sửa, xóa hoặc ẩn/hiện sản phẩm
+Screen -> Service: Cập nhật thông tin sản phẩm
+Service -> DB: Lưu thay đổi
+DB --> Service: Cập nhật thành công
+Service --> Screen: Updated ProductModel
+Screen --> Admin: Cập nhật thành công
+
+@enduml

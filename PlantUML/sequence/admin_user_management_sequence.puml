@@ -1,0 +1,36 @@
+@startuml Admin_User_Management_Sequence
+
+title "Sequence Diagram - Quản lý người dùng (Admin)"
+
+actor "Quản trị viên" as Admin
+participant "UserScreen" as Screen
+participant "UserService" as Service
+database "Database" as DB
+
+== Xem danh sách người dùng ==
+Admin -> Screen: Mở trang quản lý người dùng
+Screen -> Service: Lấy danh sách user
+Service -> DB: Truy vấn dữ liệu user
+DB --> Service: Danh sách người dùng
+Service --> Screen: Kết quả
+Screen --> Admin: Hiển thị danh sách
+note right: Tên, Email, Vai trò, Trạng thái
+
+== Xem chi tiết người dùng ==
+Admin -> Screen: Chọn user để xem chi tiết
+Screen -> Service: Lấy thông tin chi tiết
+Service -> DB: Truy vấn user và đơn hàng
+DB --> Service: Chi tiết user
+Service --> Screen: Thông tin đầy đủ
+Screen --> Admin: Hiển thị chi tiết
+note right: Thông tin cá nhân,\nLịch sử đơn hàng
+
+== Quản lý tài khoản ==
+Admin -> Screen: Thay đổi vai trò hoặc trạng thái
+Screen -> Service: Cập nhật thông tin user
+Service -> DB: Lưu thay đổi
+DB --> Service: Cập nhật thành công
+Service --> Screen: Kết quả
+Screen --> Admin: Thông báo thành công
+
+@enduml
