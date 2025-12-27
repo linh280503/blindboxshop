@@ -150,9 +150,10 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     String? sortBy,
   }) async {
     try {
+      // Don't filter by status by default - show all reviews
       return await getReviews(
         productId: productId,
-        status: status ?? ReviewStatus.approved,
+        status: status, // Pass null to get all reviews
         limit: limit,
         orderBy: sortBy,
       );
@@ -194,9 +195,49 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
           .collection(_reviewsCollection)
           .add(review.toFirestore());
 
+      // Update product rating stats after creating review
+      await _updateProductRatingStats(review.productId);
+
       return review.copyWith(id: docRef.id);
     } catch (e) {
       throw Exception('Lỗi tạo đánh giá: $e');
+    }
+  }
+
+  // Helper method to update product rating and reviewCount
+  Future<void> _updateProductRatingStats(String productId) async {
+    try {
+      // Get all reviews for this product (no status filter)
+      final snapshot = await firestore
+          .collection(_reviewsCollection)
+          .where('productId', isEqualTo: productId)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        // No reviews, reset product stats
+        await firestore.collection('products').doc(productId).update({
+          'rating': 0.0,
+          'reviewCount': 0,
+        });
+        return;
+      }
+
+      // Calculate average rating
+      double totalRating = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        totalRating += (data['rating'] ?? 0).toDouble();
+      }
+      final averageRating = totalRating / snapshot.docs.length;
+
+      // Update product with new stats
+      await firestore.collection('products').doc(productId).update({
+        'rating': double.parse(averageRating.toStringAsFixed(1)),
+        'reviewCount': snapshot.docs.length,
+      });
+    } catch (e) {
+      // Log error but don't fail the review creation
+      print('Error updating product rating stats: $e');
     }
   }
 
@@ -215,7 +256,16 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   @override
   Future<void> deleteReview(String reviewId) async {
     try {
+      // Get review first to get productId
+      final review = await getReviewById(reviewId);
+      final productId = review?.productId;
+
       await firestore.collection(_reviewsCollection).doc(reviewId).delete();
+
+      // Update product stats after deleting review
+      if (productId != null) {
+        await _updateProductRatingStats(productId);
+      }
     } catch (e) {
       throw Exception('Lỗi xóa đánh giá: $e');
     }
@@ -292,10 +342,8 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   @override
   Future<Map<String, dynamic>> getReviewStats(String productId) async {
     try {
-      final reviews = await getReviewsByProduct(
-        productId,
-        status: ReviewStatus.approved,
-      );
+      // Get all reviews for this product (no status filter - all reviews count)
+      final reviews = await getReviewsByProduct(productId);
 
       if (reviews.isEmpty) {
         return {

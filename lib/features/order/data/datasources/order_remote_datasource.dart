@@ -58,6 +58,7 @@ abstract class OrderRemoteDataSource {
 class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   final FirebaseFirestore firestore;
   static const String _ordersCollection = 'orders';
+  static const String _productsCollection = 'products';
 
   OrderRemoteDataSourceImpl({FirebaseFirestore? firestore})
     : firestore = firestore ?? FirebaseFirestore.instance;
@@ -68,6 +69,70 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
     final timestamp = now.millisecondsSinceEpoch;
     final random = (timestamp % 10000).toString().padLeft(4, '0');
     return 'ORD${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}$random';
+  }
+
+  /// Giảm tồn kho và tăng số lượng bán khi đơn hàng được xác nhận
+  Future<void> _decreaseStockAndIncreaseSold(OrderModel order) async {
+    try {
+      for (final item in order.items) {
+        await firestore.runTransaction((tx) async {
+          final ref = firestore
+              .collection(_productsCollection)
+              .doc(item.productId);
+          final snap = await tx.get(ref);
+          if (!snap.exists) return;
+
+          final data = snap.data() as Map<String, dynamic>;
+          final int currentStock = (data['stock'] ?? 0) as int;
+          final int currentSold = (data['sold'] ?? 0) as int;
+
+          final int newStock = (currentStock - item.quantity) < 0
+              ? 0
+              : (currentStock - item.quantity);
+          final int newSold = currentSold + item.quantity;
+
+          tx.update(ref, {
+            'stock': newStock,
+            'sold': newSold,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        });
+      }
+    } catch (e) {
+      print('Error decreasing stock and increasing sold: $e');
+    }
+  }
+
+  /// Tăng tồn kho và giảm số lượng bán khi đơn hàng bị hủy (từ trạng thái confirmed trở đi)
+  Future<void> _increaseStockAndDecreaseSold(OrderModel order) async {
+    try {
+      for (final item in order.items) {
+        await firestore.runTransaction((tx) async {
+          final ref = firestore
+              .collection(_productsCollection)
+              .doc(item.productId);
+          final snap = await tx.get(ref);
+          if (!snap.exists) return;
+
+          final data = snap.data() as Map<String, dynamic>;
+          final int currentStock = (data['stock'] ?? 0) as int;
+          final int currentSold = (data['sold'] ?? 0) as int;
+
+          final int newStock = currentStock + item.quantity;
+          final int newSold = (currentSold - item.quantity) < 0
+              ? 0
+              : (currentSold - item.quantity);
+
+          tx.update(ref, {
+            'stock': newStock,
+            'sold': newSold,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        });
+      }
+    } catch (e) {
+      print('Error increasing stock and decreasing sold: $e');
+    }
   }
 
   /// Update user order stats
@@ -241,6 +306,10 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
     String? trackingNumber,
   }) async {
     try {
+      // Lấy thông tin đơn hàng trước khi cập nhật để kiểm tra trạng thái cũ
+      final order = await getOrderById(orderId);
+      final oldStatus = order?.status;
+
       final updateData = <String, dynamic>{
         'status': status.name,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -258,8 +327,14 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
           .doc(orderId)
           .update(updateData);
 
+      // Xử lý cập nhật tồn kho và số lượng bán khi chuyển sang trạng thái confirmed
+      if (status == OrderStatus.confirmed &&
+          oldStatus == OrderStatus.pending &&
+          order != null) {
+        await _decreaseStockAndIncreaseSold(order);
+      }
+
       if (status == OrderStatus.delivered || status == OrderStatus.completed) {
-        final order = await getOrderById(orderId);
         if (order != null) {
           await _updateUserOrderStats(order.userId);
         }
@@ -272,6 +347,16 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   @override
   Future<void> cancelOrder(String orderId, {String? reason}) async {
     try {
+      // Lấy thông tin đơn hàng trước khi hủy
+      final order = await getOrderById(orderId);
+
+      // Kiểm tra nếu đơn hàng đã được xác nhận (confirmed trở đi) thì hoàn lại tồn kho
+      final confirmedStatuses = [
+        OrderStatus.confirmed,
+        OrderStatus.preparing,
+        OrderStatus.shipping,
+      ];
+
       final updateData = <String, dynamic>{
         'status': OrderStatus.cancelled.name,
         'statusNote': reason ?? 'Khách hàng hủy đơn hàng',
@@ -282,6 +367,11 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
           .collection(_ordersCollection)
           .doc(orderId)
           .update(updateData);
+
+      // Hoàn lại tồn kho và giảm số lượng bán nếu đơn đã được xác nhận
+      if (order != null && confirmedStatuses.contains(order.status)) {
+        await _increaseStockAndDecreaseSold(order);
+      }
     } catch (e) {
       throw Exception('Lỗi hủy đơn hàng: $e');
     }

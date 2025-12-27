@@ -28,21 +28,12 @@ class _ProductReviewsState extends ConsumerState<ProductReviews> {
   int _limit = 10;
 
   @override
-  void initState() {
-    super.initState();
-    _reload();
-  }
-
-  void _reload() {
-    ref
-        .read(productReviewsProvider(widget.productId).notifier)
-        .loadReviews(sortBy: _sortBy, limit: _limit);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Use StateNotifierProvider (same as dialog) for consistency
     final reviews = ref.watch(productReviewsProvider(widget.productId));
-    final reviewStatsAsync = ref.watch(reviewStatsProvider(widget.productId));
+    final reviewStatsAsync = ref.watch(
+      reviewStatsFutureProvider(widget.productId),
+    );
     final authState = ref.watch(authProvider);
     final currentUserId = authState.user?.uid;
 
@@ -120,7 +111,6 @@ class _ProductReviewsState extends ConsumerState<ProductReviews> {
                       onChanged: (v) {
                         if (v == null) return;
                         setState(() => _sortBy = v);
-                        _reload();
                       },
                     ),
                   ),
@@ -168,7 +158,7 @@ class _ProductReviewsState extends ConsumerState<ProductReviews> {
 
           SizedBox(height: 20.h),
 
-          // Reviews List
+          // Reviews List (from StateNotifierProvider)
           if (reviews.isEmpty)
             Column(
               children: [
@@ -218,14 +208,14 @@ class _ProductReviewsState extends ConsumerState<ProductReviews> {
                       ),
                     ),
                 SizedBox(height: 16.h),
-                if (reviews.length >= _limit)
+                if (reviews.length > 3)
                   Center(
                     child: TextButton(
-                      onPressed: () {
-                        setState(() => _limit += 10);
-                        _reload();
-                      },
-                      child: const Text('Tải thêm'),
+                      onPressed: () => _showAllReviewsDialog(context),
+                      child: Text(
+                        'Xem tất cả ${reviews.length} đánh giá',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
                     ),
                   ),
               ],

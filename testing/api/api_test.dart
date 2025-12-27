@@ -12,6 +12,7 @@
 ///
 /// Lưu ý: Một số test sẽ tạo dữ liệu thật trên Firebase!
 /// =============================================================
+library;
 
 import 'dart:convert';
 import 'dart:math';

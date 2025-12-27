@@ -51,6 +51,7 @@ abstract class ReviewRemoteDataSource {
   });
   Stream<List<ReviewModel>> watchUserReviews(String userId);
   Stream<List<ReviewModel>> watchPendingReviews();
+  Stream<Map<String, dynamic>> watchReviewStats(String productId);
 }
 
 class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
@@ -147,9 +148,10 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     String? sortBy,
   }) async {
     try {
+      // Don't filter by status by default - show all reviews
       return await getReviews(
         productId: productId,
-        status: status ?? ReviewStatus.approved,
+        status: status, // Pass null to get all reviews
         limit: limit,
         orderBy: sortBy,
       );
@@ -191,9 +193,49 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
           .collection(_reviewsCollection)
           .add(review.toFirestore());
 
+      // Update product rating stats after creating review
+      await _updateProductRatingStats(review.productId);
+
       return review.copyWith(id: docRef.id);
     } catch (e) {
       throw Exception('Lỗi tạo đánh giá: $e');
+    }
+  }
+
+  // Helper method to update product rating and reviewCount
+  Future<void> _updateProductRatingStats(String productId) async {
+    try {
+      // Get all reviews for this product (no status filter)
+      final snapshot = await firestore
+          .collection(_reviewsCollection)
+          .where('productId', isEqualTo: productId)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        // No reviews, reset product stats
+        await firestore.collection('products').doc(productId).update({
+          'rating': 0.0,
+          'reviewCount': 0,
+        });
+        return;
+      }
+
+      // Calculate average rating
+      double totalRating = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        totalRating += (data['rating'] ?? 0).toDouble();
+      }
+      final averageRating = totalRating / snapshot.docs.length;
+
+      // Update product with new stats
+      await firestore.collection('products').doc(productId).update({
+        'rating': double.parse(averageRating.toStringAsFixed(1)),
+        'reviewCount': snapshot.docs.length,
+      });
+    } catch (e) {
+      // Log error but don't fail the review creation
+      print('Error updating product rating stats: $e');
     }
   }
 
@@ -212,7 +254,16 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   @override
   Future<void> deleteReview(String reviewId) async {
     try {
+      // Get review first to get productId
+      final review = await getReviewById(reviewId);
+      final productId = review?.productId;
+
       await firestore.collection(_reviewsCollection).doc(reviewId).delete();
+
+      // Update product stats after deleting review
+      if (productId != null) {
+        await _updateProductRatingStats(productId);
+      }
     } catch (e) {
       throw Exception('Lỗi xóa đánh giá: $e');
     }
@@ -289,10 +340,8 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   @override
   Future<Map<String, dynamic>> getReviewStats(String productId) async {
     try {
-      final reviews = await getReviewsByProduct(
-        productId,
-        status: ReviewStatus.approved,
-      );
+      // Get all reviews for this product (no status filter - all reviews count)
+      final reviews = await getReviewsByProduct(productId);
 
       if (reviews.isEmpty) {
         return {
@@ -464,49 +513,30 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     ReviewStatus? status,
     int? limit,
   }) {
-    try {
-      Query query = firestore
-          .collection(_reviewsCollection)
-          .where('productId', isEqualTo: productId);
+    // Simplified query to avoid composite index requirement
+    // Filter status in code instead of Firestore query
+    Query query = firestore
+        .collection(_reviewsCollection)
+        .where('productId', isEqualTo: productId)
+        .orderBy('createdAt', descending: true);
 
+    return query.snapshots().map((snapshot) {
+      List<ReviewModel> reviews = snapshot.docs
+          .map((doc) => ReviewModel.fromFirestore(doc))
+          .toList();
+      
+      // Filter by status in code
       if (status != null) {
-        query = query.where('status', isEqualTo: status.name);
+        reviews = reviews.where((r) => r.status == status).toList();
       }
-
-      query = query.orderBy('createdAt', descending: true);
-
-      if (limit != null) {
-        query = query.limit(limit);
+      
+      // Apply limit after filtering
+      if (limit != null && reviews.length > limit) {
+        reviews = reviews.take(limit).toList();
       }
-
-      return query.snapshots().map((snapshot) {
-        return snapshot.docs
-            .map((doc) => ReviewModel.fromFirestore(doc))
-            .toList();
-      });
-    } catch (e) {
-      // Fallback: Load without status filter if index is not ready
-      Query query = firestore
-          .collection(_reviewsCollection)
-          .where('productId', isEqualTo: productId)
-          .orderBy('createdAt', descending: true);
-
-      if (limit != null) {
-        query = query.limit(limit);
-      }
-
-      return query.snapshots().map((snapshot) {
-        List<ReviewModel> reviews = snapshot.docs
-            .map((doc) => ReviewModel.fromFirestore(doc))
-            .toList();
-
-        if (status != null) {
-          reviews = reviews.where((review) => review.status == status).toList();
-        }
-
-        return reviews;
-      });
-    }
+      
+      return reviews;
+    });
   }
 
   @override
@@ -534,6 +564,52 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
           return snapshot.docs
               .map((doc) => ReviewModel.fromFirestore(doc))
               .toList();
+        });
+  }
+
+  @override
+  Stream<Map<String, dynamic>> watchReviewStats(String productId) {
+    // Get all reviews for this product (no status filter since we don't need approval)
+    return firestore
+        .collection(_reviewsCollection)
+        .where('productId', isEqualTo: productId)
+        .snapshots()
+        .map((snapshot) {
+          final reviews = snapshot.docs
+              .map((doc) => ReviewModel.fromFirestore(doc))
+              .toList();
+
+          if (reviews.isEmpty) {
+            return {
+              'totalReviews': 0,
+              'averageRating': 0.0,
+              'ratingDistribution': {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+              'verifiedReviews': 0,
+              'withImages': 0,
+            };
+          }
+
+          final totalReviews = reviews.length;
+          final averageRating =
+              reviews.fold(0.0, (sum, review) => sum + review.rating) /
+              totalReviews;
+
+          final ratingDistribution = <int, int>{1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+          for (final review in reviews) {
+            ratingDistribution[review.rating] =
+                (ratingDistribution[review.rating] ?? 0) + 1;
+          }
+
+          final verifiedReviews = reviews.where((r) => r.isVerified).length;
+          final withImages = reviews.where((r) => r.images.isNotEmpty).length;
+
+          return {
+            'totalReviews': totalReviews,
+            'averageRating': averageRating,
+            'ratingDistribution': ratingDistribution,
+            'verifiedReviews': verifiedReviews,
+            'withImages': withImages,
+          };
         });
   }
 }

@@ -32,7 +32,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    final productAsync = ref.watch(productByIdProvider(widget.productId));
+    // Use stream provider for realtime updates (sold, rating, reviewCount, stock)
+    final productAsync = ref.watch(productStreamProvider(widget.productId));
 
     return Scaffold(
       backgroundColor: AppColors.background,

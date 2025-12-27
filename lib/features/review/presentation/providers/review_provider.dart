@@ -354,3 +354,31 @@ final pendingReviewsStreamProvider = StreamProvider<List<ReviewModel>>((ref) {
   final repo = ref.watch(reviewRepositoryProvider);
   return repo.watchPendingReviews().map(ReviewMapper.toModelList);
 });
+
+// Stream provider for review stats (realtime)
+final reviewStatsStreamProvider =
+    StreamProvider.family<Map<String, dynamic>, String>((ref, productId) {
+      final repo = ref.watch(reviewRepositoryProvider);
+      return repo.watchReviewStats(productId);
+    });
+
+// FutureProvider for reviews (to avoid Firestore index issues)
+final productReviewsFutureProvider =
+    FutureProvider.family<List<ReviewModel>, Map<String, dynamic>>((
+      ref,
+      params,
+    ) async {
+      final repo = ref.watch(reviewRepositoryProvider);
+      final reviews = await repo.getReviewsByProduct(
+        params['productId'] as String,
+        limit: params['limit'] as int?,
+      );
+      return ReviewMapper.toModelList(reviews);
+    });
+
+// FutureProvider for review stats (to avoid Firestore index issues)
+final reviewStatsFutureProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((ref, productId) async {
+      final repo = ref.watch(reviewRepositoryProvider);
+      return await repo.getReviewStats(productId);
+    });

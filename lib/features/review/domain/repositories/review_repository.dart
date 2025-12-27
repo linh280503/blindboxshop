@@ -47,4 +47,5 @@ abstract class ReviewRepository {
   });
   Stream<List<Review>> watchUserReviews(String userId);
   Stream<List<Review>> watchPendingReviews();
+  Stream<Map<String, dynamic>> watchReviewStats(String productId);
 }

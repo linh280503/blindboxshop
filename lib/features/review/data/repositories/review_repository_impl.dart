@@ -198,4 +198,9 @@ class ReviewRepositoryImpl implements ReviewRepository {
       (models) => ReviewMapper.toEntityList(models),
     );
   }
+
+  @override
+  Stream<Map<String, dynamic>> watchReviewStats(String productId) {
+    return remoteDataSource.watchReviewStats(productId);
+  }
 }

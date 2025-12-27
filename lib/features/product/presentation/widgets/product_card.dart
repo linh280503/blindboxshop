@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/stock_notification.dart';
 import '../../data/models/product_model.dart';
 
 class ProductCard extends StatefulWidget {
@@ -75,6 +74,16 @@ class _ProductCardState extends State<ProductCard>
 
   bool get hasDiscount =>
       widget.originalPrice != null && widget.originalPrice! > widget.price;
+
+  /// Format sold count (e.g., 1000 -> 1k, 1500 -> 1.5k)
+  String _formatSoldCount(int sold) {
+    if (sold >= 1000000) {
+      return '${(sold / 1000000).toStringAsFixed(1)}M';
+    } else if (sold >= 1000) {
+      return '${(sold / 1000).toStringAsFixed(sold % 1000 == 0 ? 0 : 1)}k';
+    }
+    return sold.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -287,9 +296,10 @@ class _ProductCardState extends State<ProductCard>
 
                           SizedBox(height: 4.h),
 
-                          // Rating và Stock Status
+                          // Rating, Reviews và Sold
                           Row(
                             children: [
+                              // Rating badge
                               Flexible(
                                 flex: 2,
                                 child: Container(
@@ -325,11 +335,12 @@ class _ProductCardState extends State<ProductCard>
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 2.w),
+                              SizedBox(width: 4.w),
+                              // Sold count
                               Flexible(
-                                flex: 2,
+                                flex: 3,
                                 child: Text(
-                                  '(${widget.reviewCount})',
+                                  'Đã bán ${_formatSoldCount(widget.sold)}',
                                   style: TextStyle(
                                     fontSize: 8.sp,
                                     color: AppColors.textSecondary,
@@ -337,16 +348,6 @@ class _ProductCardState extends State<ProductCard>
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (widget.product != null) ...[
-                                SizedBox(width: 4.w),
-                                Flexible(
-                                  flex: 3,
-                                  child:
-                                      StockNotification.buildStockStatusWidget(
-                                        widget.product!.stock,
-                                      ),
-                                ),
-                              ],
                             ],
                           ),
 

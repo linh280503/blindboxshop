@@ -14,7 +14,8 @@ class HotProductsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hotProductsAsync = ref.watch(hotProductsProvider);
+    // Use stream provider for realtime updates
+    final hotProductsAsync = ref.watch(hotProductsStreamProvider);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),

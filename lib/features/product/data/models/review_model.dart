@@ -49,7 +49,7 @@ class ReviewModel {
       images: List<String>.from(data['images'] ?? []),
       status: ReviewStatus.values.firstWhere(
         (e) => e.name == data['status'],
-        orElse: () => ReviewStatus.pending,
+        orElse: () => ReviewStatus.approved,
       ),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -72,7 +72,7 @@ class ReviewModel {
       images: List<String>.from(data['images'] ?? []),
       status: ReviewStatus.values.firstWhere(
         (e) => e.name == data['status'],
-        orElse: () => ReviewStatus.pending,
+        orElse: () => ReviewStatus.approved,
       ),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),

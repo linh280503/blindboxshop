@@ -14,7 +14,8 @@ class NewProductsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final newProductsAsync = ref.watch(newProductsProvider);
+    // Use stream provider for realtime updates
+    final newProductsAsync = ref.watch(newProductsStreamProvider);
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
