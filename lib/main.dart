@@ -12,8 +12,8 @@ import 'core/router/router_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // TODO: Replace with your Stripe publishable key
-  Stripe.publishableKey = '';
+  // Stripe publishable key (test mode) - từ Stripe Dashboard
+  Stripe.publishableKey = 'pk_test_51Sj0w27cZ62tbjde72kWtziqG9qoZLqIc1kNdkabPHQVxeZURwN90CauwgzbqmJme60tjGXp0vE0V4BB7VnEXEkR00JSwEZTGC';
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const ProviderScope(child: MyApp()));
 }

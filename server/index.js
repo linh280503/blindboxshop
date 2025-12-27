@@ -38,7 +38,8 @@ app.post("/payments/create-payment-intent", async (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+const host = '0.0.0.0'; // Lắng nghe trên tất cả interfaces
+app.listen(port, host, () => {
+    console.log(`Server running on http://${host}:${port}`);
 });
 

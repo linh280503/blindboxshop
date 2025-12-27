@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class AppConstants {
   AppConstants._();
 
@@ -5,7 +7,9 @@ class AppConstants {
   static const String appName = 'Blind Box Shop';
 
   // Base URLs
-  static const String baseUrl = 'http://localhost:3000';
+  // Sử dụng 10.0.2.2 cho Android Emulator, hoặc IP thực cho thiết bị thật
+  // Nếu chạy trên thiết bị thật, thay bằng IP máy tính: 192.168.1.189
+  static const String baseUrl = 'http://10.0.2.2:3000';
 
   // Authentication
   static const int minPasswordLength = 6;
