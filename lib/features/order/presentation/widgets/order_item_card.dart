@@ -199,8 +199,8 @@ class OrderItemCard extends StatelessWidget {
     final status = order.status;
     final buttons = <Widget>[];
 
-    if ((status == OrderStatus.confirmed || status == OrderStatus.shipping) &&
-        onConfirmReceived != null) {
+    // Chỉ cho phép xác nhận đã nhận hàng khi đơn hàng đang giao (admin đã duyệt)
+    if (status == OrderStatus.shipping && onConfirmReceived != null) {
       buttons.add(
         Expanded(
           child: TextButton(

@@ -137,9 +137,9 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
                               order.status == OrderStatus.cancelled)
                           ? () => _reorder(order)
                           : null,
+                      // Chỉ cho phép xác nhận đã nhận hàng khi đơn đang giao (admin đã duyệt giao hàng)
                       onConfirmReceived:
-                          (order.status == OrderStatus.confirmed ||
-                              order.status == OrderStatus.shipping)
+                          order.status == OrderStatus.shipping
                           ? () => _markAsReceived(order.id)
                           : null,
                     );

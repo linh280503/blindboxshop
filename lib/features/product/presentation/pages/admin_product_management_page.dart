@@ -412,7 +412,7 @@ class _AdminProductManagementPageState
                 SizedBox(width: 4.w),
                 Flexible(
                   child: Text(
-                    '${product.rating} (${product.sold} đã bán)',
+                    '${product.rating.clamp(0.0, 5.0).toStringAsFixed(1)} (${product.sold} đã bán)',
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                     overflow: TextOverflow.ellipsis,
                   ),

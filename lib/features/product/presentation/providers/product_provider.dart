@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../data/models/product_model.dart';
 import '../../data/mappers/product_mapper.dart';
@@ -12,6 +13,43 @@ import '../../domain/usecases/get_hot_products.dart';
 import '../../domain/usecases/search_products.dart';
 import '../../domain/usecases/create_product.dart';
 import '../../domain/usecases/update_product.dart';
+import '../../../order/domain/entities/order_status.dart';
+
+/// Provider để lấy số lượng đã bán thực tế của sản phẩm từ orders collection
+/// Chỉ tính các đơn hàng có trạng thái confirmed trở lên (không tính pending, cancelled, returned)
+final productSoldCountProvider = StreamProvider.family<int, String>((
+  ref,
+  productId,
+) {
+  final firestore = FirebaseFirestore.instance;
+
+  // Các trạng thái được tính là "đã bán"
+  final validStatuses = [
+    OrderStatus.confirmed.name,
+    OrderStatus.preparing.name,
+    OrderStatus.shipping.name,
+    OrderStatus.delivered.name,
+    OrderStatus.completed.name,
+  ];
+
+  return firestore
+      .collection('orders')
+      .where('status', whereIn: validStatuses)
+      .snapshots()
+      .map((snapshot) {
+        int totalSold = 0;
+        for (final doc in snapshot.docs) {
+          final data = doc.data();
+          final items = data['items'] as List<dynamic>? ?? [];
+          for (final item in items) {
+            if (item['productId'] == productId) {
+              totalSold += (item['quantity'] as num?)?.toInt() ?? 0;
+            }
+          }
+        }
+        return totalSold;
+      });
+});
 
 final productsProvider =
     StateNotifierProvider<ProductsNotifier, List<ProductModel>>((ref) {

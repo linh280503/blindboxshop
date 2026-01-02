@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../review/presentation/providers/review_provider.dart';
+import '../providers/product_provider.dart';
 
-class ProductInfoSection extends StatelessWidget {
+class ProductInfoSection extends ConsumerWidget {
   final Map<String, dynamic> product;
   final int quantity;
   final Function(int) onQuantityChanged;
@@ -15,8 +18,58 @@ class ProductInfoSection extends StatelessWidget {
     required this.onQuantityChanged,
   });
 
+  /// Format rating to ensure it's between 0-5 and has 1 decimal place
+  String _formatRating(dynamic rating) {
+    final ratingValue = (rating ?? 0.0).toDouble();
+    final clampedRating = ratingValue.clamp(0.0, 5.0);
+    return clampedRating.toStringAsFixed(1);
+  }
+
+  /// Format sold count (e.g., 1000 -> 1k, 1500 -> 1.5k)
+  String _formatSoldCount(dynamic sold) {
+    final soldValue = (sold ?? 0) is int ? (sold ?? 0) : (sold ?? 0).toInt();
+    if (soldValue >= 1000000) {
+      return '${(soldValue / 1000000).toStringAsFixed(1)}M';
+    } else if (soldValue >= 1000) {
+      return '${(soldValue / 1000).toStringAsFixed(soldValue % 1000 == 0 ? 0 : 1)}k';
+    }
+    return soldValue.toString();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Lấy review stats thực tế từ provider để đồng bộ với phần đánh giá
+    final productId = product['id'] as String?;
+    final reviewStatsAsync = productId != null
+        ? ref.watch(reviewStatsFutureProvider(productId))
+        : null;
+
+    // Lấy số đã bán thực tế từ orders collection
+    final soldCountAsync = productId != null
+        ? ref.watch(productSoldCountProvider(productId))
+        : null;
+
+    // Lấy rating và reviewCount từ stats thực tế, fallback về product data
+    final actualRating =
+        reviewStatsAsync?.whenOrNull(
+          data: (stats) => stats['averageRating'] as double?,
+        ) ??
+        (product['rating'] as num?)?.toDouble() ??
+        0.0;
+    final actualReviewCount =
+        reviewStatsAsync?.whenOrNull(
+          data: (stats) => stats['totalReviews'] as int?,
+        ) ??
+        (product['reviewCount'] as int?) ??
+        0;
+
+    // Lấy số đã bán thực tế, fallback về product['sold']
+    final actualSold =
+        soldCountAsync?.whenOrNull(data: (sold) => sold) ??
+        ((product['sold'] ?? 0) is int
+            ? (product['sold'] ?? 0)
+            : (product['sold'] ?? 0).toInt());
+
     final hasDiscount =
         product['originalPrice'] != null &&
         product['originalPrice'] > product['price'];
@@ -91,7 +144,7 @@ class ProductInfoSection extends StatelessWidget {
 
           SizedBox(height: 16.h),
 
-          // Rating and Sold
+          // Rating and Sold - sử dụng data thực tế từ review stats và orders
           Row(
             children: [
               Row(
@@ -99,7 +152,7 @@ class ProductInfoSection extends StatelessWidget {
                   Icon(Icons.star, color: AppColors.warning, size: 16.sp),
                   SizedBox(width: 4.w),
                   Text(
-                    product['rating'].toString(),
+                    _formatRating(actualRating),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -109,7 +162,7 @@ class ProductInfoSection extends StatelessWidget {
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  '${product['reviewCount']} đánh giá',
+                  '$actualReviewCount đánh giá',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -119,7 +172,7 @@ class ProductInfoSection extends StatelessWidget {
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  'Đã bán ${(product['sold'] ?? 0).toString()}',
+                  'Đã bán ${_formatSoldCount(actualSold)}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -285,38 +338,35 @@ class ProductInfoSection extends StatelessWidget {
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 12.h),
-              ...specs.entries
-                  .map<Widget>((entry) {
-                    final String key = entry.key.toString();
-                    final String value = entry.value?.toString() ?? '';
-                    if (value.trim().isEmpty) return const SizedBox.shrink();
-                    final String keyVi = _translateSpecKey(key);
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 8.h),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 100.w,
-                            child: Text(
-                              keyVi,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.textSecondary),
-                            ),
-                          ),
-                          Flexible(
-                            child: Text(
-                              ': $value',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                          ),
-                        ],
+              ...specs.entries.map<Widget>((entry) {
+                final String key = entry.key.toString();
+                final String value = entry.value?.toString() ?? '';
+                if (value.trim().isEmpty) return const SizedBox.shrink();
+                final String keyVi = _translateSpecKey(key);
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 100.w,
+                        child: Text(
+                          keyVi,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
                       ),
-                    );
-                  })
-                  .whereType<Widget>()
-                  ,
+                      Flexible(
+                        child: Text(
+                          ': $value',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).whereType<Widget>(),
             ];
           })(),
 

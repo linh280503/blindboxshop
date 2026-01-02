@@ -2,11 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/product_model.dart';
+import '../providers/product_provider.dart';
+import '../../../review/presentation/providers/review_provider.dart';
 
-class ProductCard extends StatefulWidget {
+class ProductCard extends ConsumerStatefulWidget {
   final String id;
   final String name;
   final String brand;
@@ -45,10 +48,10 @@ class ProductCard extends StatefulWidget {
   });
 
   @override
-  State<ProductCard> createState() => _ProductCardState();
+  ConsumerState<ProductCard> createState() => _ProductCardState();
 }
 
-class _ProductCardState extends State<ProductCard>
+class _ProductCardState extends ConsumerState<ProductCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -75,6 +78,13 @@ class _ProductCardState extends State<ProductCard>
   bool get hasDiscount =>
       widget.originalPrice != null && widget.originalPrice! > widget.price;
 
+  /// Format rating to ensure it's between 0-5 and has 1 decimal place
+  String _formatRating(double rating) {
+    // Giới hạn rating trong khoảng 0-5
+    final clampedRating = rating.clamp(0.0, 5.0);
+    return clampedRating.toStringAsFixed(1);
+  }
+
   /// Format sold count (e.g., 1000 -> 1k, 1500 -> 1.5k)
   String _formatSoldCount(int sold) {
     if (sold >= 1000000) {
@@ -87,6 +97,19 @@ class _ProductCardState extends State<ProductCard>
 
   @override
   Widget build(BuildContext context) {
+    // Lấy số đã bán thực tế từ orders collection
+    final soldCountAsync = ref.watch(productSoldCountProvider(widget.id));
+    final actualSold =
+        soldCountAsync.whenOrNull(data: (sold) => sold) ?? widget.sold;
+
+    // Lấy rating thực tế từ reviews collection
+    final reviewStatsAsync = ref.watch(reviewStatsFutureProvider(widget.id));
+    final actualRating =
+        reviewStatsAsync.whenOrNull(
+          data: (stats) => stats['averageRating'] as double?,
+        ) ??
+        widget.rating;
+
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -322,7 +345,7 @@ class _ProductCardState extends State<ProductCard>
                                       SizedBox(width: 1.w),
                                       Flexible(
                                         child: Text(
-                                          widget.rating.toString(),
+                                          _formatRating(actualRating),
                                           style: TextStyle(
                                             fontSize: 8.sp,
                                             fontWeight: FontWeight.w600,
@@ -336,11 +359,11 @@ class _ProductCardState extends State<ProductCard>
                                 ),
                               ),
                               SizedBox(width: 4.w),
-                              // Sold count
+                              // Sold count - lấy từ orders thực tế
                               Flexible(
                                 flex: 3,
                                 child: Text(
-                                  'Đã bán ${_formatSoldCount(widget.sold)}',
+                                  'Đã bán ${_formatSoldCount(actualSold)}',
                                   style: TextStyle(
                                     fontSize: 8.sp,
                                     color: AppColors.textSecondary,
