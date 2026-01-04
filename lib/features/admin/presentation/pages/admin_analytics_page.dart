@@ -527,6 +527,7 @@ final lowCustomersByRangeProvider = FutureProvider.autoDispose
 class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
   String _selectedPeriod = 'Tháng này';
   String _selectedChart = 'Doanh thu';
+  DateTimeRange? _customDateRange;
 
   final List<String> _periods = [
     'Hôm nay',
@@ -534,6 +535,7 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
     'Tháng này',
     'Quý này',
     'Năm này',
+    'Tùy chỉnh',
   ];
 
   String _normalizeSection(String raw) {
@@ -547,55 +549,195 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
     }
   }
 
-  Widget _buildPeriodSelector() {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _periods.map((period) {
-                  final isSelected = period == _selectedPeriod;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedPeriod = period;
-                      });
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(right: 8.w),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 8.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Text(
-                        period,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+  void _showPeriodFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.r),
+            topRight: Radius.circular(20.r),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 12.h),
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2.r),
               ),
             ),
-          ),
-        ],
+            SizedBox(height: 16.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: AppColors.primary,
+                    size: 24.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'Lọc thời gian',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+            ...(_periods.where((p) => p != 'Tùy chỉnh').map((period) {
+              final isSelected =
+                  period == _selectedPeriod && _customDateRange == null;
+              return ListTile(
+                leading: Icon(
+                  _getPeriodIcon(period),
+                  color: isSelected ? AppColors.primary : Colors.grey[600],
+                ),
+                title: Text(
+                  period,
+                  style: TextStyle(
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: isSelected ? AppColors.primary : Colors.black87,
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                onTap: () {
+                  setState(() {
+                    _selectedPeriod = period;
+                    _customDateRange = null;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }).toList()),
+            Divider(height: 1),
+            ListTile(
+              leading: Icon(
+                Icons.date_range,
+                color:
+                    _selectedPeriod == 'Tùy chỉnh' && _customDateRange != null
+                    ? AppColors.primary
+                    : Colors.grey[600],
+              ),
+              title: Text(
+                'Tùy chỉnh',
+                style: TextStyle(
+                  fontWeight:
+                      _selectedPeriod == 'Tùy chỉnh' && _customDateRange != null
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color:
+                      _selectedPeriod == 'Tùy chỉnh' && _customDateRange != null
+                      ? AppColors.primary
+                      : Colors.black87,
+                ),
+              ),
+              subtitle: _customDateRange != null
+                  ? Text(
+                      '${_customDateRange!.start.day}/${_customDateRange!.start.month}/${_customDateRange!.start.year} - ${_customDateRange!.end.day}/${_customDateRange!.end.month}/${_customDateRange!.end.year}',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 12.sp,
+                      ),
+                    )
+                  : null,
+              trailing:
+                  _selectedPeriod == 'Tùy chỉnh' && _customDateRange != null
+                  ? Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () async {
+                Navigator.pop(context);
+                await _showDateRangePicker();
+              },
+            ),
+            SizedBox(height: 16.h),
+          ],
+        ),
       ),
     );
+  }
+
+  IconData _getPeriodIcon(String period) {
+    switch (period) {
+      case 'Hôm nay':
+        return Icons.today;
+      case 'Tuần này':
+        return Icons.view_week;
+      case 'Tháng này':
+        return Icons.calendar_month;
+      case 'Quý này':
+        return Icons.calendar_view_month;
+      case 'Năm này':
+        return Icons.calendar_today;
+      default:
+        return Icons.date_range;
+    }
+  }
+
+  Future<void> _showDateRangePicker() async {
+    final now = DateTime.now();
+    final firstDate = DateTime(2020, 1, 1); // Cho phép chọn từ năm 2020
+    final lastDate = now;
+
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      initialDateRange:
+          _customDateRange ??
+          DateTimeRange(start: DateTime(now.year, now.month, 1), end: now),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _customDateRange = DateTimeRange(
+          start: DateTime(
+            picked.start.year,
+            picked.start.month,
+            picked.start.day,
+          ),
+          end: DateTime(
+            picked.end.year,
+            picked.end.month,
+            picked.end.day,
+            23,
+            59,
+            59,
+            999,
+          ),
+        );
+        _selectedPeriod = 'Tùy chỉnh';
+      });
+    }
   }
 
   @override
@@ -621,7 +763,13 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: Colors.white),
+            onPressed: _showPeriodFilterDialog,
+            tooltip: 'Lọc thời gian',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -675,9 +823,6 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
               ),
             ),
           ),
-          _periodSelectorOrEmpty(
-            currentSection == 'Doanh thu' || currentSection == 'Đơn hàng',
-          ),
           Expanded(
             child: Consumer(
               builder: (context, ref, _) {
@@ -720,11 +865,6 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
         currentTab: AdminTab.analytics,
       ),
     );
-  }
-
-  Widget _periodSelectorOrEmpty(bool show) {
-    if (show) return _buildPeriodSelector();
-    return const SizedBox.shrink();
   }
 
   List<Widget> _buildSectionBlocks(String section) {
@@ -969,8 +1109,12 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
                         final series = list
                             .map(
                               (e) => {
-                                'label': (e['label'] ?? e['userId'] ?? '') as String,
-                                'y': ((e['y'] ?? e['totalSpent']) as num?)?.toDouble() ?? 0.0,
+                                'label':
+                                    (e['label'] ?? e['userId'] ?? '') as String,
+                                'y':
+                                    ((e['y'] ?? e['totalSpent']) as num?)
+                                        ?.toDouble() ??
+                                    0.0,
                               },
                             )
                             .toList();
@@ -1262,6 +1406,12 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
 
   DateTimeRange _rangeForPeriod(String period) {
     final now = DateTime.now();
+
+    // Nếu là tùy chỉnh và đã chọn date range, dùng custom date range
+    if (period == 'Tùy chỉnh' && _customDateRange != null) {
+      return _customDateRange!;
+    }
+
     switch (period) {
       case 'Hôm nay':
         final start = DateTime(now.year, now.month, now.day);
@@ -1297,6 +1447,11 @@ class _AdminAnalyticsPageState extends ConsumerState<AdminAnalyticsPage> {
       case 'Năm này':
         final start = DateTime(now.year, 1, 1);
         final end = DateTime(now.year, 12, 31, 23, 59, 59, 999);
+        return DateTimeRange(start: start, end: end);
+      case 'Tùy chỉnh':
+        // Fallback nếu chưa chọn date range
+        final start = DateTime(now.year, now.month, 1);
+        final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
         return DateTimeRange(start: start, end: end);
       default:
         final start = DateTime(now.year, now.month, 1);
