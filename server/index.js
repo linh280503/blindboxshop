@@ -3,7 +3,12 @@ import Stripe from "stripe";
 import cors from "cors";
 import dotenv from "dotenv";
 
-dotenv.config();
+// Explicitly specify the path to .env file
+dotenv.config({ path: './.env' });
+
+console.log("Debug Environment Variables:");
+console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? "SET" : "NOT SET");
+console.log("PORT:", process.env.PORT || "3000");
 
 const app = express();
 app.use(cors());

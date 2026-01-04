@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
@@ -13,8 +14,13 @@ import 'core/router/router_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Stripe publishable key (test mode) - từ Stripe Dashboard
-  Stripe.publishableKey = 'pk_test_51Sj0w27cZ62tbjde72kWtziqG9qoZLqIc1kNdkabPHQVxeZURwN90CauwgzbqmJme60tjGXp0vE0V4BB7VnEXEkR00JSwEZTGC';
+  Stripe.publishableKey =
+      'pk_test_51Sj0w27cZ62tbjde72kWtziqG9qoZLqIc1kNdkabPHQVxeZURwN90CauwgzbqmJme60tjGXp0vE0V4BB7VnEXEkR00JSwEZTGC';
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Tự động logout mỗi lần app khởi động để buộc đăng nhập lại
+  await FirebaseAuth.instance.signOut();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

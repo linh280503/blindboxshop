@@ -29,7 +29,8 @@ class AppConstants {
 
   // TODO: Replace with your Stripe API keys
   // Get your keys from: https://dashboard.stripe.com/apikeys
-  static const String stripePrivateKey = "";
-  static const String stripePublicKey = "";
+  // For security, move these to environment variables in production
+  static const String stripePrivateKey = "YOUR_STRIPE_SECRET_KEY_HERE";
+  static const String stripePublicKey = "YOUR_STRIPE_PUBLISHABLE_KEY_HERE";
   static const double dollarToVnd = 24000.0;
 }
